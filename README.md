@@ -1,6 +1,6 @@
-# ReSukiSU munch build
+# ReSukiSU munch MIUI14 build
 
-This repository builds a Redmi K40S (`munch`) kernel with ReSukiSU and SUSFS support.
+This repository builds a Redmi K40S (`munch`) MIUI14-targeted kernel package with ReSukiSU and SUSFS support.
 
 ## What it does
 
@@ -11,9 +11,13 @@ This repository builds a Redmi K40S (`munch`) kernel with ReSukiSU and SUSFS sup
 - Applies the Python 3 wrapper fix for the Xiaomi kernel tree
 - Builds an AnyKernel3 zip plus `Image`, `kernel.config`, and `System.map`
 
+## MIUI14 note
+
+MiCode currently only publishes `munch-s-oss` for K40S/munch. This build is packaged for MIUI14/Android 13 by preserving the device's current boot ramdisk via AnyKernel3 and limiting the flashable zip to Android 13. Treat the first flash as a compatibility test and keep your stock MIUI14 `boot.img` ready for recovery.
+
 ## Default versions
 
-- Xiaomi kernel: `munch-s-oss`
+- Xiaomi kernel: `munch-s-oss` (only public MiCode munch branch found)
 - ReSukiSU: `main`
 - SUSFS: `1.4.2-kernel-4.19`
 - GitHub Actions toolchain: AOSP `clang-r399163b`

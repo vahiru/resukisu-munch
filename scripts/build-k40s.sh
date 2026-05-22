@@ -26,7 +26,7 @@ CROSS_COMPILE_COMPAT="${CROSS_COMPILE_COMPAT:-arm-linux-gnueabi-}"
 REAL_CC="${REAL_CC:-clang}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 JOBS="${JOBS:-$(nproc)}"
-ZIP_NAME="${ZIP_NAME:-munch-resukisu.zip}"
+ZIP_NAME="${ZIP_NAME:-munch-miui14-resukisu.zip}"
 
 mkdir -p "$WORKDIR"
 rm -rf "$KERNEL_DIR" "$ANYKERNEL_DIR" "$SUSFS_DIR" "$ARTIFACT_DIR"
@@ -91,7 +91,9 @@ do.systemless=$DO_SYSTEMLESS
 do.cleanup=$DO_CLEANUP
 do.cleanuponabort=$DO_CLEANUPONABORT
 device.name1=$DEVICE_NAME_1
-supported.versions=
+device.name2=$DEVICE_NAME_2
+device.name3=$DEVICE_NAME_3
+supported.versions=$SUPPORTED_VERSIONS
 supported.patchlevels=
 supported.vendorpatchlevels=
 '; }

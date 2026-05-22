@@ -1,10 +1,10 @@
-name: build-k40s
+name: build-k40s-miui14
 
 on:
   workflow_dispatch:
     inputs:
       kernel_ref:
-        description: Xiaomi kernel ref
+        description: Xiaomi kernel ref. MiCode only publishes munch-s-oss for munch.
         required: false
         default: munch-s-oss
       resukisu_ref:
@@ -46,5 +46,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: munch-resukisu
+          name: munch-miui14-resukisu
           path: work/artifacts/*
