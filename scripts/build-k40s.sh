@@ -51,6 +51,7 @@ git apply "$ROOT_DIR/patches/aw8697-print-pattern-pointer.patch"
 patch -p1 -F3 < "$NONGKI_DIR/Patches/Patch/susfs_patch_to_4.19.patch"
 git apply "$ROOT_DIR/patches/non-gki-susfs-munch-fixes.patch"
 git apply "$ROOT_DIR/patches/bq2597x-dev-role-cast.patch"
+git apply "$ROOT_DIR/patches/ln8000-dev-role-cast.patch"
 bash "$NONGKI_DIR/Patches/susfs_inline_hook_patches.sh"
 popd >/dev/null
 
