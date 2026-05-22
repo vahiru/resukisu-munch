@@ -68,7 +68,8 @@ make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
   --disable KSU_TRACEPOINT_HOOK \
   --disable KSU_MANUAL_HOOK \
   --disable KPM \
-  --disable MODVERSIONS
+  --disable RANDOMIZE_BASE \
+  --disable RELOCATABLE
 
 make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
   LLVM=1 LLVM_IAS="$LLVM_IAS" REAL_CC="$REAL_CC" PYTHON="$PYTHON_BIN" \
