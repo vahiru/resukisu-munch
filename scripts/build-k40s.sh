@@ -24,6 +24,7 @@ DEFCONFIG="${DEFCONFIG:-munch_user_defconfig}"
 CROSS_COMPILE="${CROSS_COMPILE:-aarch64-linux-gnu-}"
 CROSS_COMPILE_COMPAT="${CROSS_COMPILE_COMPAT:-arm-linux-gnueabi-}"
 OBJDUMP="${OBJDUMP:-${CROSS_COMPILE}objdump}"
+KERNEL_LD="${KERNEL_LD:-${CROSS_COMPILE}ld.bfd}"
 LLVM_IAS="${LLVM_IAS:-0}"
 REAL_CC="${REAL_CC:-clang}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
@@ -52,12 +53,13 @@ patch -p1 -F3 < "$NONGKI_DIR/Patches/Patch/susfs_patch_to_4.19.patch"
 git apply "$ROOT_DIR/patches/non-gki-susfs-munch-fixes.patch"
 git apply "$ROOT_DIR/patches/bq2597x-dev-role-cast.patch"
 git apply "$ROOT_DIR/patches/ln8000-dev-role-cast.patch"
+git apply "$ROOT_DIR/patches/drm-sysfs-mi-weak-stubs.patch"
 bash "$NONGKI_DIR/Patches/susfs_inline_hook_patches.sh"
 popd >/dev/null
 
 make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
   LLVM=1 LLVM_IAS="$LLVM_IAS" REAL_CC="$REAL_CC" PYTHON="$PYTHON_BIN" \
-  OBJDUMP="$OBJDUMP" \
+  LD="$KERNEL_LD" OBJDUMP="$OBJDUMP" \
   CROSS_COMPILE="$CROSS_COMPILE" CROSS_COMPILE_COMPAT="$CROSS_COMPILE_COMPAT" \
   "$DEFCONFIG"
 
@@ -70,13 +72,13 @@ make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
 
 make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
   LLVM=1 LLVM_IAS="$LLVM_IAS" REAL_CC="$REAL_CC" PYTHON="$PYTHON_BIN" \
-  OBJDUMP="$OBJDUMP" \
+  LD="$KERNEL_LD" OBJDUMP="$OBJDUMP" \
   CROSS_COMPILE="$CROSS_COMPILE" CROSS_COMPILE_COMPAT="$CROSS_COMPILE_COMPAT" \
   olddefconfig
 
 make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
   LLVM=1 LLVM_IAS="$LLVM_IAS" REAL_CC="$REAL_CC" PYTHON="$PYTHON_BIN" \
-  OBJDUMP="$OBJDUMP" \
+  LD="$KERNEL_LD" OBJDUMP="$OBJDUMP" \
   CROSS_COMPILE="$CROSS_COMPILE" CROSS_COMPILE_COMPAT="$CROSS_COMPILE_COMPAT" \
   -j"$JOBS" Image
 
@@ -138,6 +140,7 @@ use_aosp_clang=$USE_AOSP_CLANG
 aosp_clang_ref=$AOSP_CLANG_REF
 aosp_clang_version=$AOSP_CLANG_VERSION
 objdump=$OBJDUMP
+kernel_ld=$KERNEL_LD
 llvm_ias=$LLVM_IAS
 zip_name=$ZIP_NAME
 EOF
