@@ -1,0 +1,68 @@
+diff --git a/drivers/media/platform/msm/cvp/hfi_response_handler.c b/drivers/media/platform/msm/cvp/hfi_response_handler.c
+index 89517dff1f51..d83f888a8bf4 100644
+--- a/drivers/media/platform/msm/cvp/hfi_response_handler.c
++++ b/drivers/media/platform/msm/cvp/hfi_response_handler.c
+@@ -485,14 +485,14 @@ static int hfi_process_session_cvp_msg(u32 device_id,
+ 	struct cvp_session_msg *sess_msg;
+ 	struct msm_cvp_inst *inst = NULL;
+ 	struct msm_cvp_core *core;
+-	void *session_id;
++	unsigned int session_id;
+ 
+ 	if (!pkt) {
+ 		dprintk(CVP_ERR, "%s: invalid param\n", __func__);
+ 		return -EINVAL;
+ 	} else if (pkt->size > MAX_HFI_PKT_SIZE * sizeof(unsigned int)) {
+ 		dprintk(CVP_ERR, "%s: bad_pkt_size %d\n", __func__, pkt->size);
+ 		return -E2BIG;
+ 	}
+-	session_id = (void *)(uintptr_t)get_msg_session_id(pkt);
++	session_id = get_msg_session_id(pkt);
+ 	core = list_first_entry(&cvp_driver->cores, struct msm_cvp_core, list);
+-	inst = cvp_get_inst_from_id(core, (unsigned int)session_id);
++	inst = cvp_get_inst_from_id(core, session_id);
+ 
+ 	if (!inst) {
+ 		dprintk(CVP_ERR, "%s: invalid session\n", __func__);
+diff --git a/fs/notify/fdinfo.c b/fs/notify/fdinfo.c
+index 8d5e7739ca2e..b7de723de999 100644
+--- a/fs/notify/fdinfo.c
++++ b/fs/notify/fdinfo.c
+@@ -96,6 +96,14 @@ static void inotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark, struct
+ 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
+ 	inode = igrab(fsnotify_conn_inode(mark->connector));
+ 	if (inode) {
++		/*
++		 * IN_ALL_EVENTS represents all of the mask bits
++		 * that we expose to userspace.  There is at
++		 * least one bit (FS_EVENT_ON_CHILD) which is
++		 * used only internally to the kernel.
++		 */
++		u32 mask = mark->mask & IN_ALL_EVENTS;
++
+ #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+ 		mnt = real_mount(file->f_path.mnt);
+ 		if (mnt->mnt_id >= DEFAULT_KSU_MNT_ID &&
+@@ -125,7 +133,7 @@ static void inotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark, struct
+ 			}
+ 			seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:0 ",
+ 					inode_mark->wd, path.dentry->d_inode->i_ino, path.dentry->d_inode->i_sb->s_dev,
+-					inotify_mark_user_mask(mark));
++					mask);
+ 			show_mark_fhandle(m, path.dentry->d_inode);
+ 			seq_putc(m, '\n');
+ 			path_put(&path);
+@@ -142,13 +150,6 @@ orig_flow:
+ 		}
+ orig_flow:
+ #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+-		/*
+-		 * IN_ALL_EVENTS represents all of the mask bits
+-		 * that we expose to userspace.  There is at
+-		 * least one bit (FS_EVENT_ON_CHILD) which is
+-		 * used only internally to the kernel.
+-		 */
+-		u32 mask = mark->mask & IN_ALL_EVENTS;
+ 		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:%x ",
+ 			   inode_mark->wd, inode->i_ino, inode->i_sb->s_dev,
+ 			   mask, mark->ignored_mask);

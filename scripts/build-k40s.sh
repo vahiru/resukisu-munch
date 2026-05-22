@@ -49,6 +49,7 @@ bash KernelSU/kernel/setup.sh "$RESUKISU_REF"
 git apply "$ROOT_DIR/patches/gcc-wrapper-py3.patch"
 git apply "$ROOT_DIR/patches/aw8697-print-pattern-pointer.patch"
 patch -p1 -F3 < "$NONGKI_DIR/Patches/Patch/susfs_patch_to_4.19.patch"
+git apply "$ROOT_DIR/patches/non-gki-susfs-munch-fixes.patch"
 bash "$NONGKI_DIR/Patches/susfs_inline_hook_patches.sh"
 popd >/dev/null
 
