@@ -47,6 +47,8 @@ git clone --depth 1 --branch "$SUSFS_REF" "$SUSFS_REPO" "$SUSFS_DIR"
 pushd "$KERNEL_DIR" >/dev/null
 bash KernelSU/kernel/setup.sh "$RESUKISU_REF"
 git apply "$ROOT_DIR/patches/gcc-wrapper-py3.patch"
+git apply "$ROOT_DIR/patches/munch-user-struct-susfs-kabi.patch"
+git apply "$ROOT_DIR/patches/aw8697-print-pattern-pointer.patch"
 patch -p1 -F3 < "$SUSFS_DIR/kernel_patches/50_add_susfs_in_kernel-4.19.patch"
 cp "$SUSFS_DIR/kernel_patches/fs/"* fs/
 cp "$SUSFS_DIR/kernel_patches/include/linux/"* include/linux/

@@ -1,0 +1,12 @@
+diff --git a/include/linux/sched/user.h b/include/linux/sched/user.h
+index 7ee45b25458f..9e5a8c57b8d8 100644
+--- a/include/linux/sched/user.h
++++ b/include/linux/sched/user.h
+@@ -47,5 +47,7 @@ struct user_struct {
+ 	/* Miscellaneous per-user rate limit */
+ 	struct ratelimit_state ratelimit;
++
++	u64 android_kabi_reserved1;
+ };
+ 
+ extern int uids_sysfs_init(void);
