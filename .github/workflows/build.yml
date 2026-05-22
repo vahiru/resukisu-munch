@@ -1,0 +1,50 @@
+name: build-k40s
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_ref:
+        description: Xiaomi kernel ref
+        required: false
+        default: munch-s-oss
+      resukisu_ref:
+        description: ReSukiSU ref
+        required: false
+        default: main
+      susfs_ref:
+        description: SUSFS ref
+        required: false
+        default: 1.4.2-kernel-4.19
+  schedule:
+    - cron: "0 3 * * 0"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison build-essential ccache curl flex git libelf-dev libssl-dev \
+            patch rsync unzip zip \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabi g++-arm-linux-gnueabi \
+            binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi \
+            clang lld llvm python3
+
+      - name: Build kernel
+        run: bash scripts/build-k40s.sh
+        env:
+          KERNEL_REF: ${{ github.event.inputs.kernel_ref || 'munch-s-oss' }}
+          RESUKISU_REF: ${{ github.event.inputs.resukisu_ref || 'main' }}
+          SUSFS_REF: ${{ github.event.inputs.susfs_ref || '1.4.2-kernel-4.19' }}
+          USE_AOSP_CLANG: "1"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: munch-resukisu
+          path: work/artifacts/*
