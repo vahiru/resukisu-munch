@@ -30,6 +30,16 @@ bash scripts/build-k40s.sh
 
 Set `USE_AOSP_CLANG=1` on an x86_64 Linux host to match the GitHub Actions toolchain.
 
+## Stock boot repack check
+
+If you have a MIUI14 stock `boot.img`, keep it local in the repository root and do not commit it. After downloading or building an `Image`, this script can verify that the stock boot layout can be repacked with the new kernel:
+
+```bash
+bash scripts/repack-stock-boot.sh boot.img work/downloaded-artifact/Image work/miui14-boot/repacked-boot.img
+```
+
+Prefer flashing the AnyKernel3 zip for first testing because it uses the phone's current boot image as the template. The repacked boot image is mainly for offline structure checks and recovery testing.
+
 ## GitHub Actions
 
 The workflow is in `.github/workflows/build.yml`.
