@@ -1,0 +1,13 @@
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 80401f1636d7..f7de1ae7cb44 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -100,7 +100,7 @@
+ #include "audit.h"
+ #include "avc_ss.h"
+ 
+-struct selinux_state selinux_state __rticdata;
++struct selinux_state selinux_state;
+ 
+ /* SECMARK reference count */
+ static atomic_t selinux_secmark_refcount = ATOMIC_INIT(0);

@@ -55,6 +55,7 @@ git apply "$ROOT_DIR/patches/non-gki-susfs-munch-fixes.patch"
 git apply "$ROOT_DIR/patches/bq2597x-dev-role-cast.patch"
 git apply "$ROOT_DIR/patches/ln8000-dev-role-cast.patch"
 git apply "$ROOT_DIR/patches/drm-sysfs-mi-weak-stubs.patch"
+git apply "$ROOT_DIR/patches/selinux-state-no-rticdata.patch"
 bash "$NONGKI_DIR/Patches/susfs_inline_hook_patches.sh"
 popd >/dev/null
 
