@@ -11,10 +11,10 @@ on:
         description: ReSukiSU ref
         required: false
         default: main
-      susfs_ref:
-        description: SUSFS ref
+      nongki_ref:
+        description: NonGKI_Kernel_Build_2nd ref for SUSFS 4.19 patches
         required: false
-        default: 1.4.2-kernel-4.19
+        default: mainline
   schedule:
     - cron: "0 3 * * 0"
 
@@ -40,7 +40,7 @@ jobs:
         env:
           KERNEL_REF: ${{ github.event.inputs.kernel_ref || 'munch-s-oss' }}
           RESUKISU_REF: ${{ github.event.inputs.resukisu_ref || 'main' }}
-          SUSFS_REF: ${{ github.event.inputs.susfs_ref || '1.4.2-kernel-4.19' }}
+          NONGKI_REF: ${{ github.event.inputs.nongki_ref || 'mainline' }}
           USE_AOSP_CLANG: "1"
 
       - name: Upload artifacts

@@ -6,11 +6,11 @@ WORKDIR="${WORKDIR:-$ROOT_DIR/work}"
 ARTIFACT_DIR="$WORKDIR/artifacts"
 KERNEL_DIR="$WORKDIR/munch-kernel"
 ANYKERNEL_DIR="$WORKDIR/AnyKernel3"
-SUSFS_DIR="$WORKDIR/susfs4ksu"
+NONGKI_DIR="$WORKDIR/non-gki-build"
 CLANG_PREBUILT_DIR="$WORKDIR/aosp-clang"
 KERNEL_REPO="${KERNEL_REPO:-https://github.com/MiCode/Xiaomi_Kernel_OpenSource.git}"
 RESUKISU_REPO="${RESUKISU_REPO:-https://github.com/ReSukiSU/ReSukiSU.git}"
-SUSFS_REPO="${SUSFS_REPO:-https://gitlab.com/simonpunk/susfs4ksu.git}"
+NONGKI_REPO="${NONGKI_REPO:-https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd.git}"
 ANYKERNEL_REPO="${ANYKERNEL_REPO:-https://github.com/osm0sis/AnyKernel3.git}"
 AOSP_CLANG_REPO="${AOSP_CLANG_REPO:-https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86}"
 AOSP_CLANG_REF="${AOSP_CLANG_REF:-android-msm-redbull-4.19-android12-qpr3}"
@@ -18,7 +18,7 @@ AOSP_CLANG_VERSION="${AOSP_CLANG_VERSION:-clang-r399163b}"
 USE_AOSP_CLANG="${USE_AOSP_CLANG:-0}"
 KERNEL_REF="${KERNEL_REF:-munch-s-oss}"
 RESUKISU_REF="${RESUKISU_REF:-main}"
-SUSFS_REF="${SUSFS_REF:-1.4.2-kernel-4.19}"
+NONGKI_REF="${NONGKI_REF:-mainline}"
 ARCH="${ARCH:-arm64}"
 DEFCONFIG="${DEFCONFIG:-munch_user_defconfig}"
 CROSS_COMPILE="${CROSS_COMPILE:-aarch64-linux-gnu-}"
@@ -31,7 +31,7 @@ JOBS="${JOBS:-$(nproc)}"
 ZIP_NAME="${ZIP_NAME:-munch-miui14-resukisu.zip}"
 
 mkdir -p "$WORKDIR"
-rm -rf "$KERNEL_DIR" "$ANYKERNEL_DIR" "$SUSFS_DIR" "$ARTIFACT_DIR"
+rm -rf "$KERNEL_DIR" "$ANYKERNEL_DIR" "$NONGKI_DIR" "$ARTIFACT_DIR"
 mkdir -p "$ARTIFACT_DIR"
 
 if [[ "$USE_AOSP_CLANG" == "1" ]]; then
@@ -42,17 +42,14 @@ fi
 
 git clone --depth 1 --branch "$KERNEL_REF" "$KERNEL_REPO" "$KERNEL_DIR"
 git clone --depth 1 --branch "$RESUKISU_REF" "$RESUKISU_REPO" "$KERNEL_DIR/KernelSU"
-git clone --depth 1 --branch "$SUSFS_REF" "$SUSFS_REPO" "$SUSFS_DIR"
+git clone --depth 1 --branch "$NONGKI_REF" "$NONGKI_REPO" "$NONGKI_DIR"
 
 pushd "$KERNEL_DIR" >/dev/null
 bash KernelSU/kernel/setup.sh "$RESUKISU_REF"
 git apply "$ROOT_DIR/patches/gcc-wrapper-py3.patch"
-git apply "$ROOT_DIR/patches/munch-user-struct-susfs-kabi.patch"
 git apply "$ROOT_DIR/patches/aw8697-print-pattern-pointer.patch"
-patch -p1 -F3 < "$SUSFS_DIR/kernel_patches/50_add_susfs_in_kernel-4.19.patch"
-cp "$SUSFS_DIR/kernel_patches/fs/"* fs/
-cp "$SUSFS_DIR/kernel_patches/include/linux/"* include/linux/
-python3 "$ROOT_DIR/scripts/apply-munch-resukisu-hooks.py"
+patch -p1 -F3 < "$NONGKI_DIR/Patches/Patch/susfs_patch_to_4.19.patch"
+bash "$NONGKI_DIR/Patches/susfs_inline_hook_patches.sh"
 popd >/dev/null
 
 make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
@@ -132,8 +129,8 @@ kernel_ref=$KERNEL_REF
 kernel_sha=$(git -C "$KERNEL_DIR" rev-parse HEAD)
 resukisu_ref=$RESUKISU_REF
 resukisu_sha=$(git -C "$KERNEL_DIR/KernelSU" rev-parse HEAD)
-susfs_ref=$SUSFS_REF
-susfs_sha=$(git -C "$SUSFS_DIR" rev-parse HEAD)
+nongki_ref=$NONGKI_REF
+nongki_sha=$(git -C "$NONGKI_DIR" rev-parse HEAD)
 use_aosp_clang=$USE_AOSP_CLANG
 aosp_clang_ref=$AOSP_CLANG_REF
 aosp_clang_version=$AOSP_CLANG_VERSION

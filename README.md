@@ -5,9 +5,9 @@ This repository builds a Redmi K40S (`munch`) MIUI14-targeted kernel package wit
 ## What it does
 
 - Clones Xiaomi `munch-s-oss`
-- Clones ReSukiSU into the kernel tree
-- Applies SUSFS kernel patches with fuzz for Xiaomi's 4.19 tree
-- Applies munch-specific ReSukiSU hook edits
+- Clones ReSukiSU into the kernel tree and runs its `setup.sh`
+- Applies the Non-GKI 4.19 SUSFS patch with fuzz for Xiaomi's 4.19 tree
+- Runs the Non-GKI SUSFS inline hook script for ReSukiSU integration
 - Applies the Python 3 wrapper fix for the Xiaomi kernel tree
 - Builds an AnyKernel3 zip plus `Image`, `kernel.config`, and `System.map`
 
@@ -19,7 +19,7 @@ MiCode currently only publishes `munch-s-oss` for K40S/munch. This build is pack
 
 - Xiaomi kernel: `munch-s-oss` (only public MiCode munch branch found)
 - ReSukiSU: `main`
-- SUSFS: `1.4.2-kernel-4.19`
+- SUSFS patch source: `JackA1ltman/NonGKI_Kernel_Build_2nd@mainline`
 - GitHub Actions toolchain: AOSP `clang-r399163b`
 
 ## Local run
