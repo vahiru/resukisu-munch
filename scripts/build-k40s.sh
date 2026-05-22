@@ -71,7 +71,7 @@ make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
 make -C "$KERNEL_DIR" O="$WORKDIR/out" ARCH="$ARCH" \
   LLVM=1 LLVM_IAS=1 REAL_CC="$REAL_CC" PYTHON="$PYTHON_BIN" \
   CROSS_COMPILE="$CROSS_COMPILE" CROSS_COMPILE_COMPAT="$CROSS_COMPILE_COMPAT" \
-  -j"$JOBS" Image System.map
+  -j"$JOBS" Image
 
 test -s "$WORKDIR/out/arch/$ARCH/boot/Image"
 test -s "$WORKDIR/out/System.map"
