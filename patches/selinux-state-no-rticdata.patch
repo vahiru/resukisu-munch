@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
 index 80401f1636d7..f7de1ae7cb44 100644
 --- a/security/selinux/hooks.c

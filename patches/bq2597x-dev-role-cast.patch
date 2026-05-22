@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/drivers/power/supply/ti/bq2597x_charger_munch.c b/drivers/power/supply/ti/bq2597x_charger_munch.c
 index 1b5ac6c3e88b..a7b0319c524d 100644
 --- a/drivers/power/supply/ti/bq2597x_charger_munch.c

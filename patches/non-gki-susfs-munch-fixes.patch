@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/drivers/media/platform/msm/cvp/hfi_response_handler.c b/drivers/media/platform/msm/cvp/hfi_response_handler.c
 index 89517dff1f51..d83f888a8bf4 100644
 --- a/drivers/media/platform/msm/cvp/hfi_response_handler.c

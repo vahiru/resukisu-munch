@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/drivers/input/misc/aw8697_haptic/aw8697.c b/drivers/input/misc/aw8697_haptic/aw8697.c
 index 16d7f02fc86e..6f9e6b126e1a 100644
 --- a/drivers/input/misc/aw8697_haptic/aw8697.c

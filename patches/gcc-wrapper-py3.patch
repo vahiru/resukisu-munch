@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/scripts/gcc-wrapper.py b/scripts/gcc-wrapper.py
 index 40dc9fb9..9e699b21 100755
 --- a/scripts/gcc-wrapper.py

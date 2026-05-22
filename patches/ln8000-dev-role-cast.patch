@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/drivers/power/supply/ti/ln8000_charger_munch.c b/drivers/power/supply/ti/ln8000_charger_munch.c
 index 3dc93021edb2..9ea099c6f201 100644
 --- a/drivers/power/supply/ti/ln8000_charger_munch.c

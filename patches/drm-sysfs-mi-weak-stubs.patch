@@ -1,3 +1,5 @@
+SPDX-License-Identifier: GPL-2.0-only
+
 diff --git a/drivers/gpu/drm/drm_sysfs.c b/drivers/gpu/drm/drm_sysfs.c
 index 4adbe32c5f05..f61f98dac12d 100644
 --- a/drivers/gpu/drm/drm_sysfs.c

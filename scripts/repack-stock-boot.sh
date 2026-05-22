@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# This file is tri-licensed under GPLv2, Apache 2.0, or the SQLite Blessing.
+# You may choose any of these licenses to use this code.
+#
+# In place of a legal notice, here is a blessing:
+#  - May you do good and not evil.
+#  - May you find forgiveness for yourself and forgive others.
+#  - May you share freely, never taking more than you give.
+#
+# SPDX-License-Identifier: GPL-2.0-only OR Apache-2.0 OR blessing
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
