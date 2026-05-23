@@ -137,6 +137,17 @@ index f3e969d79..78573b52f 100644
  #endif
  	return ksys_read(fd, buf, count);
  }
+diff --git a/include/linux/susfs_def.h b/include/linux/susfs_def.h
+index c0ced5ed9..81ea24dd5 100644
+--- a/include/linux/susfs_def.h
++++ b/include/linux/susfs_def.h
+@@ -7,5 +7,6 @@
+ /********/
+ /* shared with userspace ksu_susfs tool */
++#define SUSFS_MAGIC 0xFAFAFAFA
+ #define CMD_SUSFS_ADD_SUS_PATH 0x55550
+ #define CMD_SUSFS_ADD_SUS_MOUNT 0x55560
+ #define CMD_SUSFS_ADD_SUS_KSTAT 0x55570
 diff --git a/kernel/reboot.c b/kernel/reboot.c
 index 19f89c074..b3eaa89e2 100644
 --- a/kernel/reboot.c
