@@ -1,0 +1,53 @@
+# This file is tri-licensed under GPLv2, Apache 2.0, or the SQLite Blessing.
+# You may choose any of these licenses to use this code.
+#
+# In place of a legal notice, here is a blessing:
+#  - May you do good and not evil.
+#  - May you find forgiveness for yourself and forgive others.
+#  - May you share freely, never taking more than you give.
+#
+# SPDX-License-Identifier: GPL-2.0-only OR Apache-2.0 OR blessing
+
+name: build-k40s-miui14-ref
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref_kernel_ref:
+        description: Reference kernel ref.
+        required: false
+        default: android15-lineage22-mod
+      resukisu_ref:
+        description: ReSukiSU ref
+        required: false
+        default: main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison build-essential ccache curl flex git libelf-dev libssl-dev \
+            patch rsync unzip zip python-is-python3 \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabi g++-arm-linux-gnueabi \
+            binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi \
+            clang lld llvm python3
+
+      - name: Build reference experimental kernel
+        run: bash scripts/build-k40s-ref.sh
+        env:
+          REF_KERNEL_REF: ${{ github.event.inputs.ref_kernel_ref || 'android15-lineage22-mod' }}
+          RESUKISU_REF: ${{ github.event.inputs.resukisu_ref || 'main' }}
+          USE_AOSP_CLANG: "1"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: munch-miui14-resukisu-ref-experimental
+          path: work/artifacts-ref/*

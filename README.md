@@ -27,6 +27,17 @@ This repository builds a Redmi K40S (`munch`) MIUI14-targeted kernel package wit
 
 MiCode currently only publishes `munch-s-oss` for K40S/munch. This build is packaged for MIUI14/Android 13 by preserving the device's current boot ramdisk via AnyKernel3 and limiting the flashable zip to Android 13. Treat the first flash as a compatibility test and keep your stock MIUI14 `boot.img` ready for recovery.
 
+The default package is the conservative mainline track. It builds from Xiaomi's
+public `munch-s-oss` source and uses fallback weak stubs for several Xiaomi MIUI
+display extension callbacks that are missing from this tree. Core display may
+still work, but MIUI display extras such as panel info, MIPI register access,
+doze brightness, HBM/FOD status, and smart FPS need real-device validation.
+
+An experimental reference track is also available. It builds the `munch` MIUI
+variant from `liyafe1997/kernel_xiaomi_sm8250_mod@android15-lineage22-mod` with
+ReSukiSU enabled instead of the original SukiSU flow. Use it only as a comparison
+package if the conservative package shows display or vendor-interface problems.
+
 ## Default versions
 
 - Xiaomi kernel: `munch-s-oss` (only public MiCode munch branch found)
@@ -42,6 +53,12 @@ bash scripts/build-k40s.sh
 
 Set `USE_AOSP_CLANG=1` on an x86_64 Linux host to match the GitHub Actions toolchain.
 
+Experimental reference build:
+
+```bash
+bash scripts/build-k40s-ref.sh
+```
+
 ## Stock boot repack check
 
 If you have a MIUI14 stock `boot.img`, keep it local in the repository root and do not commit it. After downloading or building an `Image`, this script can verify that the stock boot layout can be repacked with the new kernel:
@@ -54,4 +71,5 @@ Prefer flashing the AnyKernel3 zip for first testing because it uses the phone's
 
 ## GitHub Actions
 
-The workflow is in `.github/workflows/build.yml`.
+- Conservative mainline: `.github/workflows/build.yml`
+- Reference experimental: `.github/workflows/build-ref.yml`

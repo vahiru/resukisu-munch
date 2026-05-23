@@ -163,6 +163,9 @@ kernel_ld=$KERNEL_LD
 kernel_ld_compat=$KERNEL_LD_COMPAT
 llvm_ias=$LLVM_IAS
 zip_name=$ZIP_NAME
+display_mi=fallback-weak-stubs
 EOF
+
+bash "$ROOT_DIR/scripts/verify-artifact.sh" "$ARTIFACT_DIR" main
 
 echo "Artifacts are in $ARTIFACT_DIR"
