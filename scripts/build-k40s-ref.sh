@@ -68,6 +68,7 @@ MAKE_ARGS=(
 make "${MAKE_ARGS[@]}" "${TARGET_DEVICE}_defconfig"
 
 scripts/config --file "$WORKDIR/ref-out/.config" \
+  --set-str STATIC_USERMODEHELPER_PATH /system/bin/micd \
   --enable KSU \
   --enable KSU_SUSFS \
   --disable KPM \
@@ -76,11 +77,24 @@ scripts/config --file "$WORKDIR/ref-out/.config" \
   --enable XIAOMI_MIUI \
   --enable MIHW \
   --enable PACKAGE_RUNTIME_INFO \
+  --enable MIGT \
+  --enable MIGT_ENERGY_MODEL \
+  --enable MILLET \
   --enable PERF_CRITICAL_RT_TASK \
   --enable SF_BINDER \
   --enable BINDER_OPT \
+  --enable KPERFEVENTS \
   --enable PERF_HUMANTASK \
+  --enable TASK_DELAY_ACCT \
+  --enable MIUI_ZRAM_MEMORY_TRACKING \
+  --enable MI_FRAGMENTION \
+  --enable PERF_HELPER \
+  --enable BOOTUP_RECLAIM \
+  --enable MI_RECLAIM \
   --enable RTMM \
+  --enable OVERLAY_FS \
+  --disable DEBUG_FS \
+  --disable MI_MEMORY_SYSFS \
   --disable LTO_CLANG \
   --disable LOCALVERSION_AUTO
 
