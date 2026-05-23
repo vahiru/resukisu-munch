@@ -1532,6 +1532,16 @@ diff --git a/fs/open.c b/fs/open.c
 index ef13fd9a8..a48d36a68 100644
 --- a/fs/open.c
 +++ b/fs/open.c
+@@ -28,6 +28,9 @@
+ #include <linux/ima.h>
+ #include <linux/dnotify.h>
+ #include <linux/compat.h>
++#ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
++#include <linux/susfs_def.h>
++#endif
+ 
+ #include "internal.h"
+ 
 @@ -1096,11 +1096,19 @@ struct file *file_open_root(struct dentry *dentry, struct vfsmount *mnt,
  }
  EXPORT_SYMBOL(file_open_root);
