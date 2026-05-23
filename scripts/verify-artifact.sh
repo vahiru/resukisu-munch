@@ -49,7 +49,6 @@ if ! file "$ARTIFACT_DIR/Image" | grep -q 'Linux kernel ARM64 boot executable Im
 fi
 
 need_config CONFIG_KSU
-need_config CONFIG_KSU_SUSFS
 need_not_config CONFIG_KPM
 
 case "$TRACK" in
@@ -57,6 +56,7 @@ case "$TRACK" in
     need_file "$ARTIFACT_DIR/munch-miui14-resukisu.zip"
     grep -qx 'display_mi=fallback-weak-stubs' "$ARTIFACT_DIR/build-info.txt"
     grep -qx '# CONFIG_RANDOMIZE_BASE is not set' "$ARTIFACT_DIR/kernel.config"
+    need_config CONFIG_KSU_SUSFS
     ;;
   ref)
     need_file "$ARTIFACT_DIR/munch-miui14-resukisu-ref-strict-experimental.zip"
@@ -65,6 +65,7 @@ case "$TRACK" in
     grep -qx 'susfs=strict-v2.1.0' "$ARTIFACT_DIR/build-info.txt"
     grep -qx 'susfs_version=v2.1.0' "$ARTIFACT_DIR/build-info.txt"
     need_config CONFIG_XIAOMI_MIUI
+    need_config CONFIG_KSU_SUSFS
     need_config CONFIG_KSU_SUSFS_SUS_PATH
     need_config CONFIG_KSU_SUSFS_SUS_MOUNT
     need_config CONFIG_KSU_SUSFS_SUS_KSTAT
@@ -78,6 +79,29 @@ case "$TRACK" in
       echo "unexpected legacy SUSFS v1.5.7 compatibility marker in build-info" >&2
       exit 1
     fi
+    ;;
+  ref-nosusfs)
+    need_file "$ARTIFACT_DIR/munch-miui14-resukisu-ref-nosusfs-experimental.zip"
+    grep -qx 'track=reference-nosusfs-experimental' "$ARTIFACT_DIR/build-info.txt"
+    grep -qx 'display_mi=reference-miui' "$ARTIFACT_DIR/build-info.txt"
+    grep -qx 'susfs=disabled' "$ARTIFACT_DIR/build-info.txt"
+    grep -qx 'susfs_version=none' "$ARTIFACT_DIR/build-info.txt"
+    need_config CONFIG_XIAOMI_MIUI
+    need_config CONFIG_KSU_MANUAL_HOOK
+    need_config CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+    need_config CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK
+    need_config CONFIG_KSU_MANUAL_HOOK_AUTO_INPUT_HOOK
+    need_not_config CONFIG_KSU_TRACEPOINT_HOOK
+    need_not_config CONFIG_KSU_SUSFS
+    need_not_config CONFIG_KSU_SUSFS_SUS_PATH
+    need_not_config CONFIG_KSU_SUSFS_SUS_MOUNT
+    need_not_config CONFIG_KSU_SUSFS_SUS_KSTAT
+    need_not_config CONFIG_KSU_SUSFS_SPOOF_UNAME
+    need_not_config CONFIG_KSU_SUSFS_ENABLE_LOG
+    need_not_config CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS
+    need_not_config CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+    need_not_config CONFIG_KSU_SUSFS_OPEN_REDIRECT
+    need_not_config CONFIG_KSU_SUSFS_SUS_MAP
     ;;
   *)
     echo "unknown artifact track: $TRACK" >&2

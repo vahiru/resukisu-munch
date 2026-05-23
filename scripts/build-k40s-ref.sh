@@ -13,10 +13,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORKDIR="${WORKDIR:-$ROOT_DIR/work}"
-ARTIFACT_DIR="$WORKDIR/artifacts-ref"
-KERNEL_DIR="$WORKDIR/ref-kernel-sm8250-build"
-ANYKERNEL_DIR="$WORKDIR/AnyKernel3-ref"
 CLANG_PREBUILT_DIR="$WORKDIR/aosp-clang-ref"
+REF_VARIANT="${REF_VARIANT:-strict-susfs}"
 REF_KERNEL_REPO="${REF_KERNEL_REPO:-https://github.com/liyafe1997/kernel_xiaomi_sm8250_mod.git}"
 REF_KERNEL_REF="${REF_KERNEL_REF:-android15-lineage22-mod}"
 RESUKISU_REPO="${RESUKISU_REPO:-https://github.com/ReSukiSU/ReSukiSU.git}"
@@ -33,10 +31,48 @@ CROSS_COMPILE_ARM32="${CROSS_COMPILE_ARM32:-arm-linux-gnueabi-}"
 CLANG_TRIPLE="${CLANG_TRIPLE:-aarch64-linux-gnu-}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 JOBS="${JOBS:-$(nproc)}"
-ZIP_NAME="${ZIP_NAME:-munch-miui14-resukisu-ref-strict-experimental.zip}"
+
+case "$REF_VARIANT" in
+  strict-susfs)
+    DEFAULT_ARTIFACT_DIR="$WORKDIR/artifacts-ref"
+    DEFAULT_KERNEL_DIR="$WORKDIR/ref-kernel-sm8250-build"
+    DEFAULT_ANYKERNEL_DIR="$WORKDIR/AnyKernel3-ref"
+    DEFAULT_OUT_DIR="$WORKDIR/ref-out"
+    DEFAULT_ZIP_NAME="munch-miui14-resukisu-ref-strict-experimental.zip"
+    ARTIFACT_TRACK="ref"
+    BUILD_TRACK="reference-strict-experimental"
+    SUSFS_LABEL="strict-v2.1.0"
+    SUSFS_VERSION_LABEL="v2.1.0"
+    KERNEL_STRING="ReSukiSU munch MIUI14 reference strict experimental"
+    PACKAGE_COMMENT="strict experimental reference-kernel package for Redmi K40S / munch MIUI14"
+    ;;
+  nosusfs)
+    DEFAULT_ARTIFACT_DIR="$WORKDIR/artifacts-ref-nosusfs"
+    DEFAULT_KERNEL_DIR="$WORKDIR/ref-kernel-sm8250-nosusfs-build"
+    DEFAULT_ANYKERNEL_DIR="$WORKDIR/AnyKernel3-ref-nosusfs"
+    DEFAULT_OUT_DIR="$WORKDIR/ref-nosusfs-out"
+    DEFAULT_ZIP_NAME="munch-miui14-resukisu-ref-nosusfs-experimental.zip"
+    ARTIFACT_TRACK="ref-nosusfs"
+    BUILD_TRACK="reference-nosusfs-experimental"
+    SUSFS_LABEL="disabled"
+    SUSFS_VERSION_LABEL="none"
+    KERNEL_STRING="ReSukiSU munch MIUI14 reference no-SUSFS experimental"
+    PACKAGE_COMMENT="no-SUSFS experimental reference-kernel package for Redmi K40S / munch MIUI14"
+    ;;
+  *)
+    echo "unknown REF_VARIANT: $REF_VARIANT" >&2
+    exit 1
+    ;;
+esac
+
+ARTIFACT_DIR="${ARTIFACT_DIR:-$DEFAULT_ARTIFACT_DIR}"
+KERNEL_DIR="${KERNEL_DIR:-$DEFAULT_KERNEL_DIR}"
+ANYKERNEL_DIR="${ANYKERNEL_DIR:-$DEFAULT_ANYKERNEL_DIR}"
+OUT_DIR="${OUT_DIR:-$DEFAULT_OUT_DIR}"
+ZIP_NAME="${ZIP_NAME:-$DEFAULT_ZIP_NAME}"
 
 mkdir -p "$WORKDIR"
-rm -rf "$KERNEL_DIR" "$ANYKERNEL_DIR" "$ARTIFACT_DIR" "$WORKDIR/ref-out"
+rm -rf "$KERNEL_DIR" "$ANYKERNEL_DIR" "$ARTIFACT_DIR" "$OUT_DIR"
 mkdir -p "$ARTIFACT_DIR"
 
 if [[ "$USE_AOSP_CLANG" == "1" ]]; then
@@ -46,17 +82,26 @@ if [[ "$USE_AOSP_CLANG" == "1" ]]; then
 fi
 
 git clone --depth 1 --branch "$REF_KERNEL_REF" "$REF_KERNEL_REPO" "$KERNEL_DIR"
-git -C "$KERNEL_DIR" apply "$ROOT_DIR/patches/ref-susfs-v210-strict.patch"
+if [[ "$REF_VARIANT" == "strict-susfs" ]]; then
+  git -C "$KERNEL_DIR" apply "$ROOT_DIR/patches/ref-susfs-v210-strict.patch"
+fi
 git clone --depth 1 --branch "$RESUKISU_REF" "$RESUKISU_REPO" "$KERNEL_DIR/KernelSU"
 
 pushd "$KERNEL_DIR" >/dev/null
 bash KernelSU/kernel/setup.sh "$RESUKISU_REF"
-git apply "$ROOT_DIR/patches/ref-resukisu-inline-hooks.patch"
+case "$REF_VARIANT" in
+  strict-susfs)
+    git apply "$ROOT_DIR/patches/ref-resukisu-inline-hooks.patch"
+    ;;
+  nosusfs)
+    git apply "$ROOT_DIR/patches/ref-resukisu-manual-hooks.patch"
+    ;;
+esac
 
 MAKE_ARGS=(
   ARCH="$ARCH"
   SUBARCH="$ARCH"
-  O="$WORKDIR/ref-out"
+  O="$OUT_DIR"
   CC=clang
   PYTHON="$PYTHON_BIN"
   CROSS_COMPILE="$CROSS_COMPILE"
@@ -67,22 +112,10 @@ MAKE_ARGS=(
 
 make "${MAKE_ARGS[@]}" "${TARGET_DEVICE}_defconfig"
 
-scripts/config --file "$WORKDIR/ref-out/.config" \
+scripts/config --file "$OUT_DIR/.config" \
   --set-str STATIC_USERMODEHELPER_PATH /system/bin/micd \
   --enable KSU \
-  --enable KSU_SUSFS \
-  --enable KSU_SUSFS_SUS_PATH \
-  --enable KSU_SUSFS_SUS_MOUNT \
-  --enable KSU_SUSFS_SUS_KSTAT \
-  --enable KSU_SUSFS_SPOOF_UNAME \
-  --enable KSU_SUSFS_ENABLE_LOG \
-  --enable KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
-  --enable KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
-  --enable KSU_SUSFS_OPEN_REDIRECT \
-  --enable KSU_SUSFS_SUS_MAP \
   --disable KPM \
-  --disable KSU_TRACEPOINT_HOOK \
-  --disable KSU_MANUAL_HOOK \
   --enable XIAOMI_MIUI \
   --enable MIHW \
   --enable PACKAGE_RUNTIME_INFO \
@@ -107,21 +140,54 @@ scripts/config --file "$WORKDIR/ref-out/.config" \
   --disable LTO_CLANG \
   --disable LOCALVERSION_AUTO
 
+if [[ "$REF_VARIANT" == "strict-susfs" ]]; then
+  scripts/config --file "$OUT_DIR/.config" \
+  --enable KSU_SUSFS \
+  --enable KSU_SUSFS_SUS_PATH \
+  --enable KSU_SUSFS_SUS_MOUNT \
+  --enable KSU_SUSFS_SUS_KSTAT \
+  --enable KSU_SUSFS_SPOOF_UNAME \
+  --enable KSU_SUSFS_ENABLE_LOG \
+  --enable KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
+  --enable KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
+  --enable KSU_SUSFS_OPEN_REDIRECT \
+  --enable KSU_SUSFS_SUS_MAP \
+  --disable KSU_TRACEPOINT_HOOK \
+  --disable KSU_MANUAL_HOOK
+else
+  scripts/config --file "$OUT_DIR/.config" \
+  --disable KSU_TRACEPOINT_HOOK \
+  --enable KSU_MANUAL_HOOK \
+  --enable KSU_MANUAL_HOOK_AUTO_SETUID_HOOK \
+  --enable KSU_MANUAL_HOOK_AUTO_INITRC_HOOK \
+  --enable KSU_MANUAL_HOOK_AUTO_INPUT_HOOK \
+  --disable KSU_SUSFS \
+  --disable KSU_SUSFS_SUS_PATH \
+  --disable KSU_SUSFS_SUS_MOUNT \
+  --disable KSU_SUSFS_SUS_KSTAT \
+  --disable KSU_SUSFS_SPOOF_UNAME \
+  --disable KSU_SUSFS_ENABLE_LOG \
+  --disable KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
+  --disable KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
+  --disable KSU_SUSFS_OPEN_REDIRECT \
+  --disable KSU_SUSFS_SUS_MAP
+fi
+
 make "${MAKE_ARGS[@]}" olddefconfig
 make "${MAKE_ARGS[@]}" -j"$JOBS" Image
 
-test -s "$WORKDIR/ref-out/arch/$ARCH/boot/Image"
-test -s "$WORKDIR/ref-out/System.map"
+test -s "$OUT_DIR/arch/$ARCH/boot/Image"
+test -s "$OUT_DIR/System.map"
 popd >/dev/null
 
 git clone --depth 1 "$ANYKERNEL_REPO" "$ANYKERNEL_DIR"
 
 cat > "$ANYKERNEL_DIR/anykernel.sh" <<EOF
 ### AnyKernel3 Ramdisk Mod Script
-## strict experimental reference-kernel package for Redmi K40S / munch MIUI14
+## $PACKAGE_COMMENT
 
 properties() { '
-kernel.string=ReSukiSU munch MIUI14 reference strict experimental
+kernel.string=$KERNEL_STRING
 do.devicecheck=1
 do.modules=0
 do.systemless=1
@@ -151,20 +217,20 @@ dump_boot
 write_boot
 EOF
 
-cp "$WORKDIR/ref-out/arch/$ARCH/boot/Image" "$ANYKERNEL_DIR/Image"
+cp "$OUT_DIR/arch/$ARCH/boot/Image" "$ANYKERNEL_DIR/Image"
 (cd "$ANYKERNEL_DIR" && zip -r9 "$ARTIFACT_DIR/$ZIP_NAME" . -x '*.git*')
-cp "$WORKDIR/ref-out/arch/$ARCH/boot/Image" "$ARTIFACT_DIR/Image"
-cp "$WORKDIR/ref-out/.config" "$ARTIFACT_DIR/kernel.config"
-cp "$WORKDIR/ref-out/System.map" "$ARTIFACT_DIR/System.map"
+cp "$OUT_DIR/arch/$ARCH/boot/Image" "$ARTIFACT_DIR/Image"
+cp "$OUT_DIR/.config" "$ARTIFACT_DIR/kernel.config"
+cp "$OUT_DIR/System.map" "$ARTIFACT_DIR/System.map"
 
 cat > "$ARTIFACT_DIR/build-info.txt" <<EOF
-track=reference-strict-experimental
+track=$BUILD_TRACK
 kernel_ref=$REF_KERNEL_REF
 kernel_sha=$(git -C "$KERNEL_DIR" rev-parse HEAD)
 resukisu_ref=$RESUKISU_REF
 resukisu_sha=$(git -C "$KERNEL_DIR/KernelSU" rev-parse HEAD)
-susfs=strict-v2.1.0
-susfs_version=v2.1.0
+susfs=$SUSFS_LABEL
+susfs_version=$SUSFS_VERSION_LABEL
 use_aosp_clang=$USE_AOSP_CLANG
 aosp_clang_ref=$AOSP_CLANG_REF
 aosp_clang_version=$AOSP_CLANG_VERSION
@@ -172,6 +238,6 @@ display_mi=reference-miui
 zip_name=$ZIP_NAME
 EOF
 
-bash "$ROOT_DIR/scripts/verify-artifact.sh" "$ARTIFACT_DIR" ref
+bash "$ROOT_DIR/scripts/verify-artifact.sh" "$ARTIFACT_DIR" "$ARTIFACT_TRACK"
 
-echo "Reference strict experimental artifacts are in $ARTIFACT_DIR"
+echo "Reference $REF_VARIANT artifacts are in $ARTIFACT_DIR"
