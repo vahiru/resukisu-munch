@@ -50,6 +50,7 @@ git clone --depth 1 --branch "$RESUKISU_REF" "$RESUKISU_REPO" "$KERNEL_DIR/Kerne
 
 pushd "$KERNEL_DIR" >/dev/null
 bash KernelSU/kernel/setup.sh "$RESUKISU_REF"
+git apply "$ROOT_DIR/patches/ref-resukisu-inline-hooks.patch"
 
 MAKE_ARGS=(
   ARCH="$ARCH"

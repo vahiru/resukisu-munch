@@ -1,0 +1,190 @@
+SPDX-License-Identifier: GPL-2.0-only
+
+diff --git a/drivers/input/input.c b/drivers/input/input.c
+index bcadd50e3..d166e1c31 100644
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -444,22 +444,20 @@ static void input_handle_event(struct input_dev *dev,
+  * to 'seed' initial state of a switch or initial position of absolute
+  * axis, etc.
+  */
+-#ifdef CONFIG_KSU
+-extern bool ksu_input_hook __read_mostly;
++#ifdef CONFIG_KSU_SUSFS
+ extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
+ #endif
+ 
+ void input_event(struct input_dev *dev,
+-		 unsigned int type, unsigned int code, int value)
++		unsigned int type, unsigned int code, int value)
+ {
+ 	unsigned long flags;
+ 
+-#ifdef CONFIG_KSU
+-	if (unlikely(ksu_input_hook))
+-		ksu_handle_input_handle_event(&type, &code, &value);
+-#endif
+ 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
+ 
++#ifdef CONFIG_KSU_SUSFS
++		ksu_handle_input_handle_event(&type, &code, &value);
++#endif
+ 		spin_lock_irqsave(&dev->event_lock, flags);
+ 		input_handle_event(dev, type, code, value);
+ 		spin_unlock_irqrestore(&dev->event_lock, flags);
+diff --git a/fs/exec.c b/fs/exec.c
+index d834acacc..deb99d5f9 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1936,12 +1936,9 @@ int do_execve_file(struct file *file, void *__argv, void *__envp)
+ 	return __do_execve_file(AT_FDCWD, NULL, argv, envp, 0, file);
+ }
+ 
+-#ifdef CONFIG_KSU
+-extern bool ksu_execveat_hook __read_mostly;
++#ifdef CONFIG_KSU_SUSFS
+ extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
+ 			void *envp, int *flags);
+-extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
+-				 void *argv, void *envp, int *flags);
+ #endif
+ 
+ int do_execve(struct filename *filename,
+@@ -1950,13 +1947,15 @@ int do_execve(struct filename *filename,
+ {
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct user_arg_ptr envp = { .ptr.native = __envp };
+-#ifdef CONFIG_KSU
+-	if (unlikely(ksu_execveat_hook))
+-		ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
+-	else
+-		ksu_handle_execveat_sucompat((int *)AT_FDCWD, &filename, NULL, NULL, NULL);
+-#endif
++#ifdef CONFIG_KSU_SUSFS
++	int ksu_fd = AT_FDCWD;
++	int ksu_flags = 0;
++
++	ksu_handle_execveat(&ksu_fd, &filename, &argv, &envp, &ksu_flags);
++	return do_execveat_common(ksu_fd, filename, argv, envp, ksu_flags);
++#else
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
++#endif
+ }
+ 
+ int do_execveat(int fd, struct filename *filename,
+@@ -1967,6 +1966,9 @@ int do_execveat(int fd, struct filename *filename,
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct user_arg_ptr envp = { .ptr.native = __envp };
+ 
++#ifdef CONFIG_KSU_SUSFS
++	ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
++#endif
+ 	return do_execveat_common(fd, filename, argv, envp, flags);
+ }
+ 
+@@ -1983,11 +1985,15 @@ static int compat_do_execve(struct filename *filename,
+ 		.is_compat = true,
+ 		.ptr.compat = __envp,
+ 	};
+-#ifdef CONFIG_KSU
+-	if (!ksu_execveat_hook)
+-		ksu_handle_execveat_sucompat((int *)AT_FDCWD, &filename, NULL, NULL, NULL); /* 32-bit su */
+-#endif
++#ifdef CONFIG_KSU_SUSFS
++	int ksu_fd = AT_FDCWD;
++	int ksu_flags = 0;
++
++	ksu_handle_execveat(&ksu_fd, &filename, &argv, &envp, &ksu_flags);
++	return do_execveat_common(ksu_fd, filename, argv, envp, ksu_flags);
++#else
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
++#endif
+ }
+ 
+ static int compat_do_execveat(int fd, struct filename *filename,
+@@ -2003,6 +2009,9 @@ static int compat_do_execveat(int fd, struct filename *filename,
+ 		.is_compat = true,
+ 		.ptr.compat = __envp,
+ 	};
++#ifdef CONFIG_KSU_SUSFS
++	ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
++#endif
+ 	return do_execveat_common(fd, filename, argv, envp, flags);
+ }
+ #endif
+diff --git a/fs/read_write.c b/fs/read_write.c
+index f3e969d79..78573b52f 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -586,17 +586,15 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_KSU
+-extern bool ksu_vfs_read_hook __read_mostly;
++#ifdef CONFIG_KSU_SUSFS
+ extern int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr,
+ 			size_t *count_ptr);
+ #endif
+ 
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
+-#ifdef CONFIG_KSU
+-	if (unlikely(ksu_vfs_read_hook))
+-		ksu_handle_sys_read(fd, &buf, &count);
++#ifdef CONFIG_KSU_SUSFS
++	ksu_handle_sys_read(fd, &buf, &count);
+ #endif
+ 	return ksys_read(fd, buf, count);
+ }
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index 19f89c074..b3eaa89e2 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -305,6 +305,10 @@ DEFINE_MUTEX(system_transition_mutex);
+  *
+  * reboot doesn't sync: do that yourself before calling this.
+  */
++#ifdef CONFIG_KSU_SUSFS
++extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
++#endif
++
+ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 		void __user *, arg)
+ {
+@@ -312,6 +316,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 	char buffer[256];
+ 	int ret = 0;
+ 
++#ifdef CONFIG_KSU_SUSFS
++	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
++
+ 	/* We only trust the superuser with rebooting the system. */
+ 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+ 		return -EPERM;
+diff --git a/kernel/sys.c b/kernel/sys.c
+index 4ccb49f66..6c48c0c4d 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -618,6 +618,9 @@ SYSCALL_DEFINE1(setuid, uid_t, uid)
+ 	return __sys_setuid(uid);
+ }
+ 
++#ifdef CONFIG_KSU_SUSFS
++extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
++#endif
+ 
+ /*
+  * This function implements a generic ability to update ruid, euid,
+@@ -631,6 +634,10 @@ long __sys_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+ 	int retval;
+ 	kuid_t kruid, keuid, ksuid;
+ 
++#ifdef CONFIG_KSU_SUSFS
++	ksu_handle_setresuid(ruid, euid, suid);
++#endif
++
+ 	kruid = make_kuid(ns, ruid);
+ 	keuid = make_kuid(ns, euid);
+ 	ksuid = make_kuid(ns, suid);
