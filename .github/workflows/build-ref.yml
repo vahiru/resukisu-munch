@@ -39,7 +39,7 @@ jobs:
             binutils-aarch64-linux-gnu binutils-arm-linux-gnueabi \
             clang lld llvm python3
 
-      - name: Build reference experimental kernel
+      - name: Build reference strict experimental kernel
         run: bash scripts/build-k40s-ref.sh
         env:
           REF_KERNEL_REF: ${{ github.event.inputs.ref_kernel_ref || 'android15-lineage22-mod' }}
@@ -49,5 +49,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: munch-miui14-resukisu-ref-experimental
+          name: munch-miui14-resukisu-ref-strict-experimental
           path: work/artifacts-ref/*

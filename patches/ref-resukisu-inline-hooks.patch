@@ -137,51 +137,6 @@ index f3e969d79..78573b52f 100644
  #endif
  	return ksys_read(fd, buf, count);
  }
-diff --git a/include/linux/susfs_def.h b/include/linux/susfs_def.h
-index 59c014ae0..27e779b19 100644
---- a/include/linux/susfs_def.h
-+++ b/include/linux/susfs_def.h
-@@ -2,11 +2,15 @@
- #define KSU_SUSFS_DEF_H
-
- #include <linux/bits.h>
-+#include <linux/cred.h>
-+#include <linux/version.h>
-
- /********/
- /* ENUM */
- /********/
- /* shared with userspace ksu_susfs tool */
-+#define KSU_REF_SUSFS_V157 1
-+#define SUSFS_MAGIC 0xFAFAFAFA
- #define CMD_SUSFS_ADD_SUS_PATH 0x55550
- #define CMD_SUSFS_ADD_SUS_MOUNT 0x55560
- #define CMD_SUSFS_ADD_SUS_KSTAT 0x55570
-@@ -59,4 +63,24 @@
- #define DATA_ADB_NO_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT "/data/adb/susfs_no_auto_add_sus_ksu_default_mount"
- #define DATA_ADB_NO_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT "/data/adb/susfs_no_auto_add_try_umount_for_bind_mount"
-
-+#ifndef TIF_PROC_UMOUNTED
-+#define TIF_PROC_UMOUNTED 33
-+#endif
-+
-+static inline bool susfs_is_current_proc_umounted(void)
-+{
-+	return likely(test_thread_flag(TIF_PROC_UMOUNTED));
-+}
-+
-+static inline void susfs_set_current_proc_umounted(void)
-+{
-+	set_thread_flag(TIF_PROC_UMOUNTED);
-+}
-+
-+static inline bool susfs_is_current_proc_umounted_app(void)
-+{
-+	return likely(test_thread_flag(TIF_PROC_UMOUNTED)) &&
-+		__kuid_val(current_uid()) >= 10000;
-+}
-+
- #endif // #ifndef KSU_SUSFS_DEF_H
 diff --git a/kernel/reboot.c b/kernel/reboot.c
 index 19f89c074..b3eaa89e2 100644
 --- a/kernel/reboot.c

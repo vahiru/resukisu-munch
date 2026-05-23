@@ -59,9 +59,25 @@ case "$TRACK" in
     grep -qx '# CONFIG_RANDOMIZE_BASE is not set' "$ARTIFACT_DIR/kernel.config"
     ;;
   ref)
-    need_file "$ARTIFACT_DIR/munch-miui14-resukisu-ref-experimental.zip"
+    need_file "$ARTIFACT_DIR/munch-miui14-resukisu-ref-strict-experimental.zip"
+    grep -qx 'track=reference-strict-experimental' "$ARTIFACT_DIR/build-info.txt"
     grep -qx 'display_mi=reference-miui' "$ARTIFACT_DIR/build-info.txt"
+    grep -qx 'susfs=strict-v2.1.0' "$ARTIFACT_DIR/build-info.txt"
+    grep -qx 'susfs_version=v2.1.0' "$ARTIFACT_DIR/build-info.txt"
     need_config CONFIG_XIAOMI_MIUI
+    need_config CONFIG_KSU_SUSFS_SUS_PATH
+    need_config CONFIG_KSU_SUSFS_SUS_MOUNT
+    need_config CONFIG_KSU_SUSFS_SUS_KSTAT
+    need_config CONFIG_KSU_SUSFS_SPOOF_UNAME
+    need_config CONFIG_KSU_SUSFS_ENABLE_LOG
+    need_config CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS
+    need_config CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+    need_config CONFIG_KSU_SUSFS_OPEN_REDIRECT
+    need_config CONFIG_KSU_SUSFS_SUS_MAP
+    if grep -q 'v1\.5\.7\|KSU_REF_SUSFS_V157' "$ARTIFACT_DIR/build-info.txt"; then
+      echo "unexpected legacy SUSFS v1.5.7 compatibility marker in build-info" >&2
+      exit 1
+    fi
     ;;
   *)
     echo "unknown artifact track: $TRACK" >&2

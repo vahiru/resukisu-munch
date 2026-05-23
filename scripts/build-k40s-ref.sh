@@ -33,7 +33,7 @@ CROSS_COMPILE_ARM32="${CROSS_COMPILE_ARM32:-arm-linux-gnueabi-}"
 CLANG_TRIPLE="${CLANG_TRIPLE:-aarch64-linux-gnu-}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 JOBS="${JOBS:-$(nproc)}"
-ZIP_NAME="${ZIP_NAME:-munch-miui14-resukisu-ref-experimental.zip}"
+ZIP_NAME="${ZIP_NAME:-munch-miui14-resukisu-ref-strict-experimental.zip}"
 
 mkdir -p "$WORKDIR"
 rm -rf "$KERNEL_DIR" "$ANYKERNEL_DIR" "$ARTIFACT_DIR" "$WORKDIR/ref-out"
@@ -46,12 +46,12 @@ if [[ "$USE_AOSP_CLANG" == "1" ]]; then
 fi
 
 git clone --depth 1 --branch "$REF_KERNEL_REF" "$REF_KERNEL_REPO" "$KERNEL_DIR"
+git -C "$KERNEL_DIR" apply "$ROOT_DIR/patches/ref-susfs-v210-strict.patch"
 git clone --depth 1 --branch "$RESUKISU_REF" "$RESUKISU_REPO" "$KERNEL_DIR/KernelSU"
 
 pushd "$KERNEL_DIR" >/dev/null
 bash KernelSU/kernel/setup.sh "$RESUKISU_REF"
 git apply "$ROOT_DIR/patches/ref-resukisu-inline-hooks.patch"
-git -C KernelSU apply "$ROOT_DIR/patches/ref-resukisu-susfs-v157-dispatch.patch"
 
 MAKE_ARGS=(
   ARCH="$ARCH"
@@ -71,6 +71,15 @@ scripts/config --file "$WORKDIR/ref-out/.config" \
   --set-str STATIC_USERMODEHELPER_PATH /system/bin/micd \
   --enable KSU \
   --enable KSU_SUSFS \
+  --enable KSU_SUSFS_SUS_PATH \
+  --enable KSU_SUSFS_SUS_MOUNT \
+  --enable KSU_SUSFS_SUS_KSTAT \
+  --enable KSU_SUSFS_SPOOF_UNAME \
+  --enable KSU_SUSFS_ENABLE_LOG \
+  --enable KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
+  --enable KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
+  --enable KSU_SUSFS_OPEN_REDIRECT \
+  --enable KSU_SUSFS_SUS_MAP \
   --disable KPM \
   --disable KSU_TRACEPOINT_HOOK \
   --disable KSU_MANUAL_HOOK \
@@ -109,10 +118,10 @@ git clone --depth 1 "$ANYKERNEL_REPO" "$ANYKERNEL_DIR"
 
 cat > "$ANYKERNEL_DIR/anykernel.sh" <<EOF
 ### AnyKernel3 Ramdisk Mod Script
-## experimental reference-kernel package for Redmi K40S / munch MIUI14
+## strict experimental reference-kernel package for Redmi K40S / munch MIUI14
 
 properties() { '
-kernel.string=ReSukiSU munch MIUI14 reference experimental
+kernel.string=ReSukiSU munch MIUI14 reference strict experimental
 do.devicecheck=1
 do.modules=0
 do.systemless=1
@@ -149,11 +158,13 @@ cp "$WORKDIR/ref-out/.config" "$ARTIFACT_DIR/kernel.config"
 cp "$WORKDIR/ref-out/System.map" "$ARTIFACT_DIR/System.map"
 
 cat > "$ARTIFACT_DIR/build-info.txt" <<EOF
-track=reference-experimental
+track=reference-strict-experimental
 kernel_ref=$REF_KERNEL_REF
 kernel_sha=$(git -C "$KERNEL_DIR" rev-parse HEAD)
 resukisu_ref=$RESUKISU_REF
 resukisu_sha=$(git -C "$KERNEL_DIR/KernelSU" rev-parse HEAD)
+susfs=strict-v2.1.0
+susfs_version=v2.1.0
 use_aosp_clang=$USE_AOSP_CLANG
 aosp_clang_ref=$AOSP_CLANG_REF
 aosp_clang_version=$AOSP_CLANG_VERSION
@@ -163,4 +174,4 @@ EOF
 
 bash "$ROOT_DIR/scripts/verify-artifact.sh" "$ARTIFACT_DIR" ref
 
-echo "Reference experimental artifacts are in $ARTIFACT_DIR"
+echo "Reference strict experimental artifacts are in $ARTIFACT_DIR"
